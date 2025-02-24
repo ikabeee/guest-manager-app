@@ -1,4 +1,4 @@
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Spinner, Avatar, DropdownTrigger, Button, Dropdown, DropdownMenu, DropdownItem, Pagination, useDisclosure, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Input, Form } from "@heroui/react";
+import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Spinner, Avatar, DropdownTrigger, Button, Dropdown, DropdownMenu, DropdownItem, Pagination, useDisclosure, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Input, Form, Alert } from "@heroui/react";
 import { useEffect, useMemo, useState, useRef } from "react";
 import GuestService from "../services/GuestService";
 import { DoorClosedIcon, PlusIcon, Trash, UserIcon } from "lucide-react";
@@ -14,6 +14,7 @@ const columns = [
 
 export default function InviteList() {
     const [users, setUsers] = useState([]);
+    const [error, setError] = useState('')
     const [loading, setLoading] = useState(true);
     const { isOpen, onOpen, onClose } = useDisclosure();
     const { register, handleSubmit, reset } = useForm();
@@ -62,7 +63,8 @@ export default function InviteList() {
             onClose();
             fetchUsers();
         } catch (error) {
-            console.error(error);
+            const errorMessage = error.response?.data?.message || error.message || "Unexpected error occurred";
+            setError(errorMessage);
         }
     }
 
@@ -114,6 +116,9 @@ export default function InviteList() {
                                             type="text"
                                             {...register("tel")}
                                         />
+                                        {error && (
+                                            <Alert color="warning">{error}</Alert>
+                                        )}
                                     </Form>
                                 </ModalBody>
                                 <ModalFooter>
