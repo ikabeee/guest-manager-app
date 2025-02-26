@@ -1,7 +1,7 @@
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Spinner, Avatar, DropdownTrigger, Button, Dropdown, DropdownMenu, DropdownItem, Pagination, useDisclosure, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Input, Form, Alert } from "@heroui/react";
 import { useEffect, useMemo, useState, useRef } from "react";
 import GuestService from "../services/GuestService";
-import { DoorClosedIcon, PlusIcon, Trash, UserIcon } from "lucide-react";
+import { DoorClosedIcon, EditIcon, PlusIcon, Trash, UserIcon } from "lucide-react";
 import VerticalDotsIcon from "./VerticalDotsIcon";
 import { useForm } from "react-hook-form";
 
@@ -180,6 +180,7 @@ export default function InviteList() {
                                             </Button>
                                         </DropdownTrigger>
                                         <DropdownMenu>
+                                            <DropdownItem color="secondary" startContent={<EditIcon />} key="edit" onPress={() => { onOpen() }}>Edit</DropdownItem>
                                             <DropdownItem color="danger" startContent={<Trash />} key="delete" onPress={() => handleDelete(user.id)}>Delete</DropdownItem>
                                         </DropdownMenu>
                                     </Dropdown>
