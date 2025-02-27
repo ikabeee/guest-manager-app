@@ -1,4 +1,8 @@
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Spinner, Avatar, DropdownTrigger, Button, Dropdown, DropdownMenu, DropdownItem, Pagination } from "@heroui/react";
+import { 
+    Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, 
+    Spinner, Avatar, DropdownTrigger, Button, Dropdown, DropdownMenu, 
+    DropdownItem, Pagination, Alert 
+} from "@heroui/react";
 import { useEffect, useMemo, useState } from "react";
 import GuestService from "../services/GuestService";
 import VerticalDotsIcon from "./VerticalDotsIcon";
@@ -16,11 +20,14 @@ export default function GuestList() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
+    const [error] = useState(""); 
+    const [showError] = useState(false); 
     const rowPerPage = 10;
 
     useEffect(() => {
         fetchUsers();
     }, []);
+
     const fetchUsers = async () => {
         try {
             const response = await GuestService.findAll();
@@ -31,9 +38,22 @@ export default function GuestList() {
                     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
                     .join(" ")
             }));
-            setUsers(formattedUsers);
+
+            const usersWithLimit = formattedUsers.map(user => {
+                const invitedCount = formattedUsers.filter(invited => invited.userId === user.id).length;
+
+                if (invitedCount >= user.user.sites) {
+                    user.isInvitable = false;
+                } else {
+                    user.isInvitable = true; 
+                }
+
+                return user;
+            });
+
+            setUsers(usersWithLimit);
         } catch (e) {
-            console.error("Error fetching friends", e);
+            console.error("Error fetching guests", e);
         } finally {
             setLoading(false);
         }
@@ -46,7 +66,7 @@ export default function GuestList() {
         } catch (error) {
             console.error("Error deleting a friend", error);
         }
-    }
+    };
 
     const pages = useMemo(() => {
         return users?.length ? Math.ceil(users.length / rowPerPage) : 0;
@@ -54,12 +74,15 @@ export default function GuestList() {
 
     return (
         <div className="relative">
+            {showError && (
+                <Alert color="warning">{error}</Alert>
+            )}
+
             {loading ? (
                 <div className="flex justify-center items-center h-40">
                     <Spinner color="secondary" variant="wave">Loading</Spinner>
                 </div>
             ) : (
-
                 <Table
                     aria-label="Dynamic table"
                     bottomContent={
@@ -84,7 +107,7 @@ export default function GuestList() {
                         ))}
                     </TableHeader>
                     <TableBody emptyContent="No guests to display">
-                        {users.map((user) => (
+                        {users.slice((page - 1) * rowPerPage, page * rowPerPage).map((user) => (
                             <TableRow key={user.id}>
                                 <TableCell>{user.id}</TableCell>
                                 <TableCell className="flex items-center gap-x-4">
@@ -101,7 +124,15 @@ export default function GuestList() {
                                             </Button>
                                         </DropdownTrigger>
                                         <DropdownMenu>
-                                            <DropdownItem color="danger" startContent={<Trash />} key="delete" onPress={()=> handleDelete(user.id)}>Delete</DropdownItem>
+                                            <DropdownItem 
+                                                color="danger" 
+                                                startContent={<Trash />} 
+                                                key="delete" 
+                                                onPress={() => handleDelete(user.id)}
+                                                disabled={!user.isInvitable}
+                                            >
+                                                Delete
+                                            </DropdownItem>
                                         </DropdownMenu>
                                     </Dropdown>
                                 </TableCell>
